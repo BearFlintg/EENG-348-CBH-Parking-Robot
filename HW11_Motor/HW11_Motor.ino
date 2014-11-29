@@ -10,6 +10,7 @@
  Continuous change of direction on motors and update of DACs
  Interrupt function to update ADC values
  
+ Robot DAC: LTC1661
  
  Connections:
  (Ard)   (Robot)
@@ -78,16 +79,18 @@ void setup(){
   direct=1; 
 }
 
+// sets the DAC according to value of potentiometer
+// see DAC datasheet for operation
 void I2DACb(int x, int potval) {
   if (potval == 4) // potB
-  { // code for Load DAC B is 0010
+  { // code for Load DAC B is 1010
     b[0] = 1;
     b[1] = 0;
     b[2] = 1;
     b[3] = 0;
   }
   else // potA
-  { // code for Load DAC A is 0001
+  { // code for Load DAC A is 1001
     b[0] = 1;
     b[1] = 0;
     b[2] = 0;
@@ -98,7 +101,6 @@ void I2DACb(int x, int potval) {
     b[i] = x % 2;
     x = x / 2;
   } 
-
   b[14] = 0;
   b[15] = 0;
   for (i = 0; i < 16; i++)
