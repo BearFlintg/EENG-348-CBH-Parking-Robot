@@ -160,8 +160,8 @@ void ChangeDirection(int direct){
 
 ISR(TIMER1_COMPA_vect){
   //Serial.println("Timer Interrupt");
-  ADC4_B=analogRead(4);
-  ADC5_A=analogRead(5);
+  ADC4_B=1000;
+  ADC5_A=1000;
   Send2DAC(ADC4_B, ADC5_A);
   //Serial.println("End interrupt");
   //ChangeDirection(direct);
