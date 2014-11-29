@@ -20,8 +20,8 @@
 {
   pinMode(encoderL, INPUT);
   pinMode(encoderR, INPUT);
-  attachInterrupt(0,encoderInterL,CHANGE); // INTO
-  attachInterrupt(1,encoderInterR,CHANGE); // INT1
+  attachInterrupt(0,encoderInterL,CHANGE); // INTO on UNO pin2
+  attachInterrupt(1,encoderInterR,CHANGE); // INT1 on UNO pin3
   Serial.begin(9600);
 }
 
@@ -43,7 +43,7 @@ void encoderInterL() //activated when there is a change in the left encoder
   if (dirL == 1) {  // if the robot is going forward increment the counter
     countsL++;
   }
-  else if (dirL == 0) {  //if 
+  else if (dirL == 0) {  //if the robot is going backwards decrement the counter
     countsL--;
   }
   delay(5);
@@ -51,10 +51,10 @@ void encoderInterL() //activated when there is a change in the left encoder
 
 void encoderInterR() //activated when there is a change in the right encoder
 {
-  if (dirR == 1) {
+  if (dirR == 1) { // if the robot is going forward increment the counter
     countsR++;
   }
-  else if (dirR == 0) {
+  else if (dirR == 0) { //if the robot is going backwards decrement the counter
     countsR--;
   }
   delay(5);
