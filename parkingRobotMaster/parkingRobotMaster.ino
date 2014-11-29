@@ -5,7 +5,6 @@
  Status: IP
  Parking Robot - Final Project for EE 348
  
- 
  Robot Components:
  MCU: Arduino Uno
  Robot DAC: LTC1661
@@ -27,6 +26,8 @@
  SCK 10 (output) -> J10 DAC clk purple
  */
 
+#define encoderL 2
+#define encoderR 3
 // F R
 #define FinR 6 // 0 0 brake
 #define RinR 7 // 0 1 CW
@@ -40,10 +41,17 @@
 #define NBITS 16
 int b[NBITS];
 
-boolean dir;  //direction 1 is foward, 0 is backwards
+boolean debug=true //debug mode, set to true to print out info to Serial monitor
+
+volatile int countsL=0;
+volatile int countsR=0;
+boolean dirL=0; //0 = backwards, 1= forwards
+boolean dirR=0;
 int spL=0, spR=0; //speed of each wheel
 
 unsigned long previousMillis = 0; //needed for "blinkWithoutDelay" style counter
+unsigned long previousMillis2 = 0;
+unsigned long currentMillis;
 
 void setup(){
   Serial.begin(9600); //open serial port, set BR
@@ -56,26 +64,47 @@ void setup(){
   digitalWrite(RinR,LOW);
   digitalWrite(FinL,LOW);
   digitalWrite(RinL,LOW);
-  pinMode(CLOCK, OUTPUT);
+  pinMode(CLOCK, OUTPUT); 
   pinMode(DOUT, OUTPUT);
   pinMode(CSLD, OUTPUT);
   digitalWrite(CLOCK, LOW);
   digitalWrite(DOUT, LOW);
   digitalWrite(CSLD, HIGH);
+  pinMode(encoderL, INPUT); //encoders
+  pinMode(encoderR, INPUT);
+  attachInterrupt(0,encoderInterL,CHANGE); // INTO on UNO pin2
+  attachInterrupt(1,encoderInterR,CHANGE); // INT1 on UNO pin3
 
-  dir=1;  
+  dirL=1; //robot initilizes to going foward at fast speed
+  dirR=1;  
   spL=1000;
   spR=1000;
+  send2DAC(spL,spR);
+  digitalWrite(FinR,LOW); // Forward
+  digitalWrite(RinR,HIGH); 
+  digitalWrite(FinL,HIGH); //Forward
+  digitalWrite(RinL,LOW);
 }
 
 void loop(){
-  
-  unsigned long currentMillis = millis();
+  //changes direction every 2000ms
+  currentMillis = millis();
   if(currentMillis - previousMillis >= 2000) {
-    previousMillis = currentMillis;  
-    ChangeDirection(dir);
-    Serial.println("Changing direction");
-    dir=(dir+1)%2; //alternates between 1 and 0
+    previousMillis = currentMillis;
+    //   dirL=(dirL+1)%2; //alternates between 1 and 0
+    //   dirR=(dirR+1)%2; //alternates between 1 and 0
+    //   changeDirection(dirL,dirR);
+    //   Serial.println("Changing direction");
+  }
+
+  // updates PID and prints the status of the encoders every 100 ms
+  currentMillis = millis();
+  if(currentMillis - previousMillis2 >= 400) {
+    previousMillis2 = currentMillis;
+    updatePID();
+    if (debug==1) {
+      printCounts();
+    }
   }
 }
 
@@ -104,15 +133,18 @@ void I2DACb(int x, int potval) {
   } 
   b[14] = 0;
   b[15] = 0;
-  for (int i = 0; i < 16; i++)
-  {
-    Serial.print(b[i]); 
+  if (debug==true) {
+    Serial.print("Sent to DAC: ");
+    for (int i = 0; i < 16; i++)
+    {
+      Serial.print(b[i]); 
+    }
+    Serial.println();
   }
-  Serial.println();
 }
 
 // sends values of potentiometer to Robot DAC
-void Send2DAC(int ADC4_B, int ADC5_A){
+void send2DAC(int ADC4_B, int ADC5_A){
   I2DACb(ADC4_B, 4);
   digitalWrite(CSLD, LOW);
   for (int i = 0; i < NBITS; i++)
@@ -144,24 +176,59 @@ void Send2DAC(int ADC4_B, int ADC5_A){
 }
 
 //changes the direction of the robot by setting the Motor Driver 
-void ChangeDirection(int direct){
-  if(direct==1){
+void changeDirection(boolean directL, boolean directR){
+  if(directR==1){
     digitalWrite(FinR,LOW); // Forward
     digitalWrite(RinR,HIGH); 
-    digitalWrite(FinL,HIGH);
-    digitalWrite(RinL,LOW);
   }
-  else if (direct==0){
+  else if (directR==0){
     digitalWrite(FinR,HIGH); //Reverse
     digitalWrite(RinR,LOW);
-    digitalWrite(FinL,LOW);
+  }
+  if(directL==1){
+    digitalWrite(FinL,HIGH); //Forward
+    digitalWrite(RinL,LOW);
+  }
+  else if (directL==0){
+    digitalWrite(FinL,LOW); //Reverse
     digitalWrite(RinL,HIGH);
   }
 }
 
 void updatePID(){
-  Send2DAC(spL,spR)
-  }
+  send2DAC(spL,spR);
+}
 
+void encoderInterL() //activated when there is a change in the left encoder
+{
+  if (dirL == 1) {  // if the robot is going forward increment the counter
+    countsL++;
+  }
+  else if (dirL == 0) {  //if the robot is going backwards decrement the counter
+    countsL--;
+  }
+}
+
+void encoderInterR() //activated when there is a change in the right encoder
+{
+  if (dirR == 1) { // if the robot is going forward increment the counter
+    countsR++;
+  }
+  else if (dirR == 0) { //if the robot is going backwards decrement the counter
+    countsR--;
+  }
+}
+
+// prints information regarding the encoders to the Serial Monitor
+void printCounts(){
+  Serial.print("Right Now EncoderL is : ");
+  Serial.print(digitalRead(encoderL));
+  Serial.print(" and EncoderR is : ");
+  Serial.println(digitalRead(encoderR));
+  Serial.print("Counts L: ");
+  Serial.print(countsL);
+  Serial.print(" Counts R: ");
+  Serial.println(countsR);
+}
 
 
