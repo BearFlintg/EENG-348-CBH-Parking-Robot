@@ -15,12 +15,14 @@
  (Ard)   (Robot)
  Pin 2-> J4, Left wheel encoder
  Pin 3-> J5, Right wheel encoder
+ 
+ // Motor Drive - determines direction
  Pin 6-> J6, Fin, Right motor
  Pin 7-> J7, Rin, Right motor
  Pin 8-> J8, Fin, Left motor
  Pin 9-> J9, Rin, Left motor
  
- // Bit-Bang to DAC
+ // Bit-Bang to DAC - determines motor voltage and speed
 // CS 12 (output) -> J12 DAC (!CS) white
 // DIN 11 (output) -> J11 DAC DIN gray
 // SCK 10 (output) -> J10 DAC clk purple
@@ -106,6 +108,7 @@ void I2DACb(int x, int potval) {
   Serial.println();
 }
 
+// sends values of potentiometer to Robot DAC
 void Send2DAC(int ADC4_B, int ADC5_A){
   I2DACb(ADC4_B, 4);
   digitalWrite(CSLD, LOW);
