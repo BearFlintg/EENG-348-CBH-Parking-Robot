@@ -5,6 +5,11 @@
  Status: IP
  Parking Robot - Final Project for EE 348
  
+ Master Arduino sends commands to the motor driver to change direction
+ and uses bit-banging to send speed command to robot DAC.
+ Collects data from encoders and utilizes P control.
+ Communicates to the other two Arduinos using I2C/TWI and the Wire library.
+ 
  Robot Components:
  MCU: Arduino Uno
  Robot DAC: LTC1661
@@ -38,16 +43,19 @@
 #define DOUT 11
 #define CSLD 12
 
+#include <Wire.h> // for I2C/TWI Arduino to Arduino Communication
+#define S_ADDR 0x60  //address of the 1st slave
+
 #define NBITS 16
 int b[NBITS];
 
-boolean debug=true //debug mode, set to true to print out info to Serial monitor
+boolean debug=true; //debug mode, set to true to print out info to Serial monitor
 
 volatile int countsL=0;
 volatile int countsR=0;
 boolean dirL=0; //0 = backwards, 1= forwards
 boolean dirR=0;
-int spL=0, spR=0; //speed of each wheel
+int spL=0, spR=0; //speed of each wheel (0-1023)
 
 unsigned long previousMillis = 0; //needed for "blinkWithoutDelay" style counter
 unsigned long previousMillis2 = 0;
@@ -56,6 +64,8 @@ unsigned long currentMillis;
 void setup(){
   Serial.begin(9600); //open serial port, set BR
   //ZxSerial.setTimout(10); //make parseInt() faster
+  Wire.begin(S_ADDR);  // Sets UNO as slave with S_ADDR address
+  Wire.onReceive(receiveEvent);
   pinMode(FinR, OUTPUT); //set motor control pins to output
   pinMode(RinR,OUTPUT);
   pinMode(FinL,OUTPUT);
