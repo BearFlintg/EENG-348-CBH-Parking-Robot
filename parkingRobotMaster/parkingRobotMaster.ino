@@ -256,7 +256,7 @@ byte xLmotor2 = 0;
 byte xdirect = 1;
 // function is called when the arduino receives something over I2C/TWI
 // it parses the series of bytes it receives and updates pertinant variables
-// including speed and direction
+// including speed and direction. Then pushes that info to the robot DAC and motor driver.
 void receiveEvent(int bytes)
 {
   if(Wire.available() != 0)
