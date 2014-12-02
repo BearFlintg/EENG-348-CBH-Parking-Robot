@@ -1,4 +1,4 @@
-/* parkingRobotMaster.ino 
+/* parkingRobotBottom.ino 
  Christopher Datsikas, Bear Flintgruber, and Hope Wilson
  Created: 11-29-2014
  Last Modified: 11-29-2014
@@ -69,7 +69,7 @@ unsigned long previousMillis2 = 0;
 unsigned long currentMillis;
 
 void setup(){
-  Serial.begin(9600); //open serial port, set BR
+  Serial.begin(9600); //open serial port, set Baud Rate
   //ZxSerial.setTimout(10); //make parseInt() faster
   Wire.begin(S_ADDR);  // Sets UNO as slave with S_ADDR address
   Wire.onReceive(receiveEvent);
