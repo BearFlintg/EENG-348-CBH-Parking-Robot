@@ -1,11 +1,11 @@
 /* parkingRobotMaster.ino 
- Christopher Datsikas, Bear, and Hope
+ Christopher Datsikas, Bear Flintgruber, and Hope Wilson
  Created: 11-29-2014
  Last Modified: 11-29-2014
  Status: IP
  Parking Robot - Final Project for EE 348
  
- Master Arduino sends commands to the motor driver to change direction
+ Bottom Arduino sends commands to the motor driver to change direction
  and uses bit-banging to send speed command to robot DAC.
  Collects data from encoders and utilizes P control.
  Communicates to the other two Arduinos using I2C/TWI and the Wire library.
@@ -29,11 +29,18 @@
  CS 12 (output) -> J12 DAC (!CS) white
  DIN 11 (output) -> J11 DAC DIN gray
  SCK 10 (output) -> J10 DAC clk purple
+ 
+ //I2C/TWI Communication Between Arduinos
+ Pin A4 <-> Pin A4 (SDA)
+ Pin A5 <-> Pin A5 (SCL)
+ GND <-> GND
+ 
  */
 
 #define encoderL 2
 #define encoderR 3
-// F R
+
+               // F R
 #define FinR 6 // 0 0 brake
 #define RinR 7 // 0 1 CW
 #define FinL 8 // 1 0 CCW
@@ -241,4 +248,41 @@ void printCounts(){
   Serial.println(countsR);
 }
 
+// variables utilized to receive data from the other UNO
+byte xRmotor = 0; 
+byte xRmotor2 = 0;
+byte xLmotor = 0;
+byte xLmotor2 = 0;
+byte xdirect = 1;
+// function is called when the arduino receives something over I2C/TWI
+// it parses the series of bytes it receives and updates pertinant variables
+// including speed and direction
+void receiveEvent(int bytes)
+{
+  if(Wire.available() != 0)
+  {
+    xRmotor = Wire.read();  //which is LSM or MSB?
+    xRmotor2 = Wire.read();
+    xLmotor = Wire.read();
+    xLmotor2 = Wire.read();
+    xdirect = Wire.read();
+    if (debug==1) {
+      Serial.print("Received from Master Uno: ");
+      Serial.print(xRmotor2, HEX);
+      Serial.print(xRmotor, HEX);
+      Serial.print(' ');
+      Serial.print(xLmotor2, HEX);
+      Serial.print(xLmotor, HEX);
+      Serial.print(' ');    
+      Serial.print(xdirect);
+      Serial.print("\n");
+    }
+    spR = xRmotor + (xRmotor2*256);
+    spL = xLmotor + (xLmotor2*256);
+    dirL = xdirect;
+    dirR = xdirect;
+    changeDirection(dirL,dirR);
+    send2DAC(spL,spR);
+  }
+}
 
