@@ -197,58 +197,87 @@ void setup(void)
 }
 
 void loop(){
+// receives right motor speed, left motor speed, and direction
+// from matlab;
+// sends these values to robot via wireless RF24 module
   int gotitR = 0;
   int gotitL = 0;
   int gotitd = 0;
+  
+  // the stop listening command allows it to send data instead of receiving it
   radio.stopListening();
+  // waiting for serial communication from matlab.
   while ( ! Serial.available())
   {
   }
+  
+  // receives right motor speed (Rmotor) first
   Rmotor = Serial.parseInt();
   printf("right motor: ");
   printf("%d", Rmotor, "\n\r");
+  
+  // this loop ensures that the data will be sent successfully
+  // via the wireless
   while (gotitR == 0)
   {
     bool ok = radio.write( &Rmotor, sizeof(int) );
     if (ok)
     {
       Serial.println("ok...");
-      gotitR = 1;
+      gotitR = 1;   // now that the data is transmitted, 
+                    //it can escape from the while loop
     }
     else
     {
-      printf("failed.\n\r");
+      printf("failed.\n\r"); 
+      // it failed but that's okay because it can try as many times as it needs
     }
   }
+  
+  // the code worked better when i had it start and stop listening again
+  // before sending more commands. I don't know why!
   radio.startListening();
   radio.stopListening();
+  // waits for serial communication from matlab
   while ( ! Serial.available())
   {
   }
+  // left motor speed is the second thing it receives
   Lmotor = Serial.parseInt();
   printf("left motor: ");
   printf("%d", Lmotor, "\n\r");
   
+  // this loop ensures that the data will be sent successfully
+  // via the wireless
   while (gotitL == 0)
   {
     bool okay = radio.write( &Lmotor, sizeof(int) );
     if (okay)
     {
       Serial.println("okay...");
-      gotitL = 1;
+      gotitL = 1; // escapes the while loop
     }
     else
     {
       printf("failed.\n\r");
+      // goes through the while loop again to make sure it gets sent
     }
   }
+  
+  // arbitrary start/stop listening because
+  // the code works better this way:
   radio.startListening();
   radio.stopListening();
+  
+  // wait for serial communication
  while ( ! Serial.available())
   {
   }
+  // direction is the last thing Matlab sends the arduino
+  // in a given cycle
   direct = Serial.parseInt();
   printf("direction: ");
+  // forward for 1, backwards for 0
   if (direct == 1)
   {
     Serial.println("forward");
@@ -258,19 +287,20 @@ void loop(){
     Serial.println("backwards");
   }
   
+  // ensure that the data gets sent successfully
   while (gotitd == 0)
   {
      bool okayy = radio.write( &direct, sizeof(int) );
     if (okayy)
     {
       Serial.println("okayy...");
-      gotitd = 1;
+      gotitd = 1; // escape the while loop
     }
     else
     {
       printf("failed.\n\r");
+      // goes through the while loop again for another chance
+      // at sending the data
     }
   }
-  
-  //Send2DAC(ADC4_B, ADC5_A); 
 }
