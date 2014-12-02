@@ -25,7 +25,14 @@
  5V     <-> red
  Pin D9 <-> orange (D9 has PWM)
  GND    <-> black
+ 
+  //I2C/TWI Communication Between Arduinos
+ Pin A4 <-> Pin A4 (SDA)
+ Pin A5 <-> Pin A5 (SCL)
+ GND <-> GND
+
  */
+ 
 
 #include <Servo.h>
 #define S_ADDR2 0x61  //address of the 2st slave
