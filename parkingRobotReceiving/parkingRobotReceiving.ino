@@ -32,8 +32,6 @@
  version 2 as published by the Free Software Foundation.
  */
 
-
-
 int ADC4_B, ADC5_A, direct,i,val;
 int Lmotor, Rmotor;
 
