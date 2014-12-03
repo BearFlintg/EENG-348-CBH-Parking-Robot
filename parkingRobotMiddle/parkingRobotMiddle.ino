@@ -192,23 +192,32 @@ byte xLmotor2 = 0;
 byte xdirect = 1;
 
 void loop(){
+  // waiting for a radio signal:
   while ( ! radio.available())
   {
   }
+  // read the signal from the wireless:
+  // (right motor speed, ranges from 0 to 1023)
   radio.read( &Rmotor, sizeof(int) );
   printf("right motor: ");
   printf("%d", Rmotor, "\n\r");
-
+  
+  // waiting for a radio signal:
   while ( ! radio.available())
   {
   }
+  // read the signal from the wireless:
+  // (left motor speed, ranges from 0 to 1023)
   radio.read( &Lmotor, sizeof(int) );
   printf("left motor: ");
   printf("%d", Lmotor, "\n\r");
 
+  // waiting for a radio signal:
   while ( ! radio.available())
   {
   }
+  //read the signal from the wireless:
+  // direction, 1 if forward and 0 if backwards
   radio.read( &direct, sizeof(int) );
 
   Serial.print("direction: ");
@@ -221,12 +230,23 @@ void loop(){
     Serial.println("backwards");
   }
 
-
+  // I2C can only send data in byte-size chunks
+  // but our motor speed values are 10-bit, so we have to split them up
+  
+  // xRmotor = least significant 8 bits of Rmotor:
   xRmotor = Rmotor % 256;
+  // xRmotor2 = most significant 2 bits of Rmotor:
+  // (Rmotor = xRmotor2*256 + xRmotor)
   xRmotor2 = (Rmotor - xRmotor)/256;
+  // xLmotor = least significant 8 bits of Lmotor:
   xLmotor = Lmotor % 256;
+  // xLmotor2 = most significant 2 bits of Lmotor:
+  // (Lmotor = xLmotor2*256 + xLmotor)
   xLmotor2 = (Lmotor - xLmotor)/256;
+  // direction is only one bit so it doesn't need to be split up
   xdirect = direct;
+  
+  // transmit all values in byte form via I2C:
   Wire.beginTransmission(S_ADDR);
   Wire.write(xRmotor);
   Wire.write(xRmotor2);
@@ -235,6 +255,5 @@ void loop(){
   Wire.write(xdirect);
   Wire.endTransmission();
   Serial.println("transmitted!");
-  //Send2DAC(ADC4_B, ADC5_A); 
 }
 
